@@ -1,6 +1,6 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks
+# Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,visualstudiocode
 
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
@@ -162,4 +162,17 @@ Thumbs.db
 .prof
 
 
-# End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,visualstudiocode
