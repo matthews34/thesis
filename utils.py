@@ -7,6 +7,19 @@ import argparse
 import matplotlib.pyplot as plt
 from pathlib import Path
 from pandas.core.indexes.range import RangeIndex
+from datetime import datetime
+
+def running_from_ipython():
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
+def timed_print(*values: object):
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    print(dt_string, ' '.join(values))
 
 def load_data(file_path: str) -> object:
     '''Load NPY file'''
