@@ -1,20 +1,5 @@
 # %%
 import torch
-
-# %%
-# TODO: flexibilize size ?
-
-# Vectorize samples
-def vectorize_samples(samples):
-    # concatenate into one 6400x1 vector
-    samples = torch.flatten(samples, start_dim=1)
-    # split complex values
-    samples = torch.stack((samples.real, samples.imag), -1) # vector is now 6400x2
-    # concatenate into one 12800x1 vector
-    samples = torch.flatten(samples, start_dim=1)
-    return samples
-
-# %%
 from torch import nn
 import torch.nn.functional as F
 
@@ -38,6 +23,17 @@ class Network(nn.Module):
         )
         
     def forward(self, x):
-        out = self.model(x)
-        return out
+        x = self.prepare_input(x)
+        x = self.model(x)
+        return x
 
+    # Vectorize samples
+    # TODO: flexibilize size ?
+    def prepare_input(x):
+        # concatenate into one 6400x1 vector
+        x = torch.flatten(x, start_dim=1)
+        # split complex values
+        x = torch.stack((x.real, x.imag), -1) # vector is now 6400x2
+        # concatenate into one 12800x1 vector
+        x = torch.flatten(x, start_dim=1)
+        return x

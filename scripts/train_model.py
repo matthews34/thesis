@@ -88,15 +88,16 @@ test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_
 from importlib import import_module
 network = import_module(network_module[:-3])
 Network = network.Network
-vectorize_samples = network.vectorize_samples
+# vectorize_samples = network.vectorize_samples
 model = Network()
-timed_print('Model created from ' + network_module)
+timed_print(f'Network created from {network_module}')
 
 # %%
 from torch import optim
 
 # Choose GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cpu')
 model.to(device)
 
 timed_print('Running on ' + ('GPU' if device.type == 'cuda' else 'CPU'))
@@ -118,15 +119,15 @@ for e in range(epochs):
     testing_loss = 0
     for samples, labels in train_loader:
         
-        samples, labels = samples.to(device), labels.to(device)
+        samples, labels = samples.to(device), labels.float().to(device)
         
         # Vectorize the samples
-        samples = vectorize_samples(samples)
+        # samples = vectorize_samples(samples)
     
         optimizer.zero_grad()
         
-        output = model(samples.float())
-        loss = criterion(output, labels.float())
+        output = model(samples)
+        loss = criterion(output, labels)
         loss.backward()
         
         # Clip gradients to avoid exploding gradients
