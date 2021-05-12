@@ -118,29 +118,24 @@ for e in range(epochs):
     training_loss = 0
     testing_loss = 0
     for samples, labels in train_loader:
-        
-        samples, labels = samples.to(device), labels.float().to(device)
-        
+        samples, labels = samples.to(device), labels.to(device)
         # Vectorize the samples
         # samples = vectorize_samples(samples)
-    
+
         optimizer.zero_grad()
-        
+    
         output = model(samples)
-        loss = criterion(output, labels)
+        loss = criterion(output, labels.float())
         loss.backward()
-        
         # Clip gradients to avoid exploding gradients
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
+#           torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
         optimizer.step()
-        
         training_loss += loss.item()
-        #print(loss.item())
     else:
         with torch.no_grad():
             for samples, labels in test_loader:
                 samples, labels = samples.to(device), labels.to(device)
-        
+    
                 # Vectorize the samples
                 samples = vectorize_samples(samples)
 
@@ -148,7 +143,7 @@ for e in range(epochs):
                 loss = criterion(output, labels.float())
 
                 testing_loss += loss.item()
-                
+            
         training_loss /= len(train_dataset)
         testing_loss /= len(test_dataset)
         training_losses.append(training_loss)
@@ -159,7 +154,6 @@ for e in range(epochs):
             "Training Loss: {:.3f}... ".format(training_loss),
             "Test Loss: {:.3f}... ".format(testing_loss)
         )
-        
 
 # %%
 # save model and losses
