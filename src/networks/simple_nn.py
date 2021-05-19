@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+import logging
 
 class Network(nn.Module):
     def __init__(self):
@@ -29,11 +30,11 @@ class Network(nn.Module):
 
     # Vectorize samples
     # TODO: flexibilize size ?
-    def prepare_input(x):
+    def prepare_input(self, x):
         # concatenate into one 6400x1 vector
         x = torch.flatten(x, start_dim=1)
         # split complex values
         x = torch.stack((x.real, x.imag), -1) # vector is now 6400x2
         # concatenate into one 12800x1 vector
         x = torch.flatten(x, start_dim=1)
-        return x
+        return x.float()

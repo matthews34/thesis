@@ -13,6 +13,8 @@ class DenseBlock(nn.Module):
         self.conv3 = nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
         self.conv4 = nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
 
+        self.norm = nn.BatchNorm2d(out_channels)
+
     def forward(self, input):
         hidden_c = F.relu(self.conv1(input))
         hidden_v = F.relu(self.conv2(hidden_c))
@@ -22,7 +24,7 @@ class DenseBlock(nn.Module):
         hidden_c = torch.cat((hidden_c, hidden_v))
         hidden_v = F.relu(self.conv4(hidden_c))
 
-        output = F.batch_norm(hidden_v)
+        output = self.norm(hidden_v)
         return output
 
 class Network(nn.Module):

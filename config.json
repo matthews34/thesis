@@ -1,0 +1,10 @@
+{
+    "network": "simple_nn",
+    "dataset_dir": "/mnt/d/mathe/Documents/thesis/ultra_dense/DIS_lab_LoS",
+    "epochs": 150,
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "num_workers": 8,
+    "dataset": "default",
+    "device": "cuda"
+}
