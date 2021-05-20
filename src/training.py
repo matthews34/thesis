@@ -3,6 +3,7 @@ import torch.nn as nn
 import os
 import logging
 import numpy as np
+import torch.nn.functional as F
 from importlib import import_module
 from torch.utils.data import DataLoader
 from torch import optim
@@ -44,8 +45,6 @@ def train():
 
     # Define the loss as MSE loss
     criterion = nn.MSELoss()
-    se_function = nn.MSELoss(reduction='sum')
-    ae_function = nn.L1Loss(reduction='sum')
 
     training_losses = []
     test_losses = []
@@ -68,8 +67,8 @@ def train():
             optimizer.step()
             
             with torch.no_grad():
-                squared_error = se_function(output, labels)
-                absolute_error = ae_function(output, labels)
+                squared_error = F.mse_loss(output, labels, reduction='sum')
+                absolute_error = F.l1_loss(output, labels, reduction='sum')
                 training_loss['squared_error'] += squared_error.item()
                 training_loss['absolute_error'] += absolute_error.item()
         else:
@@ -88,8 +87,9 @@ def train():
                     samples, labels = samples.to(device), labels.to(device)
         
                     output = model(samples)
-                    loss = criterion(output, labels.float())
 
+                    squared_error = F.mse_loss(output, labels, reduction='sum')
+                    absolute_error = F.l1_loss(output, labels, reduction='sum')
                     test_loss['squared_error'] += squared_error.item()
                     test_loss['absolute_error'] += absolute_error.item()
                 
