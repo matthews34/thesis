@@ -60,16 +60,18 @@ def train():
         
             output = model(samples)
             loss = criterion(output, labels)
-            squared_error = se_function(output, labels)
-            absolute_error = ae_function(output, labels)
             loss.backward()
 
             # Clip gradients to avoid exploding gradients
             torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
 
             optimizer.step()
-            training_loss['squared_error'] += squared_error.item()
-            training_loss['absolute_error'] += absolute_error.item()
+            
+            with torch.no_grad():
+                squared_error = se_function(output, labels)
+                absolute_error = ae_function(output, labels)
+                training_loss['squared_error'] += squared_error.item()
+                training_loss['absolute_error'] += absolute_error.item()
         else:
             # Save checkpoint
             torch.save({

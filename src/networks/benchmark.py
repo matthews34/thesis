@@ -9,9 +9,12 @@ class DenseBlock(nn.Module):
 
         padding = (int(kernel_size[0]/2), int(kernel_size[1]/2))
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
-        self.conv3 = nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
-        self.conv4 = nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding)
+        in_channels = out_channels
+        self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
+        in_channels += out_channels
+        self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
+        in_channels += out_channels
+        self.conv4 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
 
         self.norm = nn.BatchNorm2d(out_channels)
 
@@ -19,9 +22,9 @@ class DenseBlock(nn.Module):
         hidden_c = F.relu(self.conv1(input))
         hidden_v = F.relu(self.conv2(hidden_c))
 
-        hidden_c = torch.cat((hidden_c, hidden_v))
+        hidden_c = torch.cat((hidden_c, hidden_v), 1)
         hidden_v = F.relu(self.conv3(hidden_c))
-        hidden_c = torch.cat((hidden_c, hidden_v))
+        hidden_c = torch.cat((hidden_c, hidden_v), 1)
         hidden_v = F.relu(self.conv4(hidden_c))
 
         output = self.norm(hidden_v)
@@ -68,10 +71,6 @@ class Network(nn.Module):
         # input = (N x 6 x 64 x 100)
         return input.float()
         
-    # TODO: 
-    #   verify number of input channels
-    #   check difference between nn and F
-    #   check encoder (I think it just converts the output to a model)
     def cnn(self, x):
         x = self.dense_block1(x)
         x = F.avg_pool2d(x, kernel_size=(1,5))
@@ -84,6 +83,8 @@ class Network(nn.Module):
         x = F.avg_pool2d(x, kernel_size=(1,5))
 
         x = torch.flatten(x, 1)
+
+        return x
 
     def fully_connected(self, x):
         dropout_rate = 0.0
