@@ -5,9 +5,9 @@ import logging
 import numpy as np
 import torch.nn.functional as F
 from importlib import import_module
-from torch.utils.data import DataLoader
 from torch import optim
 from src import dataset, dataset_dir, batch_size, num_workers, network, learning_rate, epochs, device, checkpoint
+from src.utils.data_manager import create_dataloader
 
 positions_file = os.path.join(dataset_dir, 'user_positions.npy')
 samples_dir = os.path.join(dataset_dir, 'samples')
@@ -15,14 +15,7 @@ training_indices = os.path.join(dataset_dir, 'train_indices.npy')
 test_indices = os.path.join(dataset_dir, 'test_indices.npy')
 
 def train():
-
-    # Setup dataset and data loader
-    dataset_module = import_module('.' + dataset, package='src.datasets')
-    Dataset = dataset_module.CSIDataset
-    train_dataset = Dataset(positions_file, samples_dir, training_indices)
-    test_dataset = Dataset(positions_file, samples_dir, test_indices)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    training_loader, test_loader, training_size, test_size = create_dataloader()
 
     # Setup model and optimizer
     model = import_module('.' + network, package='src.networks').Network()
@@ -50,9 +43,9 @@ def train():
     test_losses = []
     for e in range(epoch, epochs):
         model.train()
-        training_loss = {'squared_error': 0,'absolute_error': 0}
-        test_loss = {'squared_error': 0,'absolute_error': 0}
-        for samples, labels in train_loader:
+        training_loss = {'squared_error': 0,'absolute_error': 0, 'distance': 0}
+        test_loss = {'squared_error': 0,'absolute_error': 0, 'distance': 0}
+        for samples, labels in training_loader:
             samples, labels = samples.to(device), labels.to(device).float()
 
             optimizer.zero_grad()
@@ -69,6 +62,8 @@ def train():
             with torch.no_grad():
                 squared_error = F.mse_loss(output, labels, reduction='sum')
                 absolute_error = F.l1_loss(output, labels, reduction='sum')
+                distance = torch.sum(F.pairwise_distance(output, labels))
+                training_loss['distance'] += distance.item()
                 training_loss['squared_error'] += squared_error.item()
                 training_loss['absolute_error'] += absolute_error.item()
         else:
@@ -90,18 +85,21 @@ def train():
 
                     squared_error = F.mse_loss(output, labels, reduction='sum')
                     absolute_error = F.l1_loss(output, labels, reduction='sum')
+                    distance = torch.sum(F.pairwise_distance(output, labels))
+                    test_loss['distance'] += distance.item()
                     test_loss['squared_error'] += squared_error.item()
                     test_loss['absolute_error'] += absolute_error.item()
                 
-            training_loss = {key: value/len(train_dataset) for key, value in training_loss.items()}
-            test_loss = {key: value/len(test_dataset) for key, value in test_loss.items()}
+            training_loss = {key: value/training_size for key, value in training_loss.items()}
+            test_loss = {key: value/test_size for key, value in test_loss.items()}
             training_losses.append(training_loss)
             test_losses.append(test_loss)
 
             logging.info(
                 "Epoch: {}/{}... ".format(e+1, epochs) +
                 "Training Loss: {:.3f}... ".format(training_loss['absolute_error']) +
-                "Test Loss: {:.3f}... ".format(test_loss['absolute_error'])
+                "Test Loss: {:.3f}... ".format(test_loss['absolute_error']) +
+                "Test Distance: {:.3f}".format(test_loss['distance'])
             )
 
     # Save the final model
@@ -109,7 +107,7 @@ def train():
     torch.save(model.state_dict(), model_path)
 
     # Save the losses for later analysis
-    losses_path = os.path.join('output', 'losses', network + '.pt')
+    losses_path = os.path.join('output', 'losses', network + '_losses.pt')
     torch.save({
         'training_losses': training_losses,
         'test_losses': test_losses
