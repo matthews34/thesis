@@ -7,7 +7,7 @@ from src.utils.data_manager import load_data
 class CSIDataset(Dataset):
     """CSI dataset."""
     
-    def __init__(self, positions_file, samples_dir, indices_file):
+    def __init__(self, positions_file, samples_dir, indices):
         """
         Args:
             positions_file (string): Path to the file containing the user positions.
@@ -16,7 +16,7 @@ class CSIDataset(Dataset):
         """
         self.user_positions = load_data(positions_file)
         self.samples_dir = samples_dir
-        self.indices = load_data(indices_file)
+        self.indices = indices
         
     def __len__(self):
         return len(self.indices)
