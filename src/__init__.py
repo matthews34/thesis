@@ -18,7 +18,6 @@ epochs = config['epochs']
 learning_rate = config['learning_rate']
 batch_size = config['batch_size']
 num_workers = config['num_workers']
-dataset = config['dataset']
 
 if 'device' in config.keys():
     device = torch.device(config['device'])

@@ -6,8 +6,8 @@ import numpy as np
 import torch.nn.functional as F
 from importlib import import_module
 from torch import optim
-from src import dataset, dataset_dir, batch_size, num_workers, network, learning_rate, epochs, device, checkpoint
-from src.utils.data_manager import create_dataloader
+from src import dataset_dir, batch_size, num_workers, network, learning_rate, epochs, device, checkpoint
+from src.datasets.default import create_dataloader
 
 THRESHOLD = 10
 
