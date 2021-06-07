@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import logging
+from src import device
 
 class Network(nn.Module):
     def __init__(self):
@@ -44,11 +45,13 @@ class Network(nn.Module):
         return x
 
     def prepare_input(self, x):
-        # concatenate into one 6400x1 vector
+        indices = torch.tensor([2*i for i in range(50)]).to(device)
+        x = torch.index_select(x, 2, indices)
+        # concatenate into one 3200x1 vector
         x = torch.flatten(x, start_dim=1)
         # split complex values
-        x = torch.stack((x.real, x.imag), -1) # vector is now 6400x2
-        # concatenate into one 12800x1 vector
+        x = torch.stack((x.real, x.imag), -1) # vector is now 3200x2
+        # concatenate into one 6400x1 vector
         x = torch.flatten(x, start_dim=1)
 
         return x.float()

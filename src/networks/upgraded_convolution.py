@@ -8,11 +8,11 @@ class Network(nn.Module):
         super().__init__()
         
         # Input layer
-        self.fc1 = nn.Linear(6400, 16000)
+        self.fc1 = nn.Linear(12800, 16000)
         # Convolutional layers
-        self.conv1 = nn.Conv2d(1, 4, kernel_size=4, stride=4)
-        self.conv2 = nn.Conv2d(4, 8, kernel_size=(4,2), stride=(4,2)) 
-        self.conv3 = nn.Conv2d(8, 20, kernel_size=(1,5), stride=(1,5)) 
+        self.conv1 = nn.Conv2d(1, 4, kernel_size=9, padding=4)
+        self.conv2 = nn.Conv2d(4, 8, kernel_size=9, padding=4) 
+        self.conv3 = nn.Conv2d(8, 20, kernel_size=9, padding=4) 
         self.fc2 = nn.Linear(500, 2)
         
     def forward(self, x):
@@ -26,13 +26,16 @@ class Network(nn.Module):
         # Reshape x to pass it through convolutional layers
         x = x.reshape((-1, 1, 80, 200)) # shape: 1 x 80 x 200
 
-        x = self.conv1(x) # shape: 4 x 20 x 50 = 4000
+        x = self.conv1(x) # shape: 4 x 80 x 200
+        x = F.max_pool2d(x, 4)
         x = F.relu(x) # 4 x 20 x 50 = 4000
         
-        x = self.conv2(x) # shape: 8 x 5 x 25 = 
-        x = F.relu(x) # 8 x 10 x 25
+        x = self.conv2(x) # shape: 8 x 20 x 50
+        x = F.max_pool2d(x, (4,2))
+        x = F.relu(x) # 8 x 5 x 25 = 1000
         
-        x = self.conv3(x) # 20 x 5 x 5
+        x = self.conv3(x) # 20 x 5 x 25
+        x = F.max_pool2d(x, (1,5))
         x = F.relu(x) # 20 x 5 x 5 = 500
         
         # Flatten to run through last layer
