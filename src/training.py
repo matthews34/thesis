@@ -15,8 +15,8 @@ def train():
     training, validation, _ = create_dataloader()
 
     # Setup model and optimizer
-    model = import_module('.' + network, package='src.networks').Network()
     model_path = os.path.join('output', 'models', network + '.pt')
+    model = import_module('.' + network, package='src.networks').Network()
     epoch = 0
     checkpoint_path = os.path.join('output', 'models', 'checkpoints', network + '_checkpoint.pt')
 
@@ -27,8 +27,6 @@ def train():
     training_losses = []
     validation_losses = []
     best_validation_loss = float('inf')
-    strip = []
-    k = 5
     for e in range(epoch, epochs):
         model.train()
         training_loss = {'squared_error': 0,'absolute_error': 0, 'distance': 0}
@@ -55,14 +53,6 @@ def train():
                 training_loss['squared_error'] += squared_error.item()
                 training_loss['absolute_error'] += absolute_error.item()
         else:
-            # Save checkpoint
-            torch.save({
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'epoch': e,
-                'loss': loss.item
-            }, checkpoint_path)
-            
             # Evaluate model
             model.eval()
             with torch.no_grad():
@@ -83,20 +73,10 @@ def train():
             training_losses.append(training_loss)
             validation_losses.append(validation_loss)
 
+            # Save the best model
             if validation_loss['squared_error'] < best_validation_loss:
                 best_validation_loss = validation_loss['squared_error']
-                # save best model
                 torch.save(model.state_dict(), model_path)
-
-            # stoppinng criterion
-            generalization_loss = 100 * (validation_loss['squared_error']/best_validation_loss-1)
-            if len(strip) >= k:
-                strip.pop(0)
-            strip.append(training_loss['squared_error'])
-            progress = 1000 * (sum(strip)/(k * min(strip) - 1))
-            logging.debug('Generalization Loss: {}... Progress: {}... Stopping Criterion: {}'.format(generalization_loss, progress, generalization_loss/progress))
-            # if generalization_loss/progress > THRESHOLD:
-            #     break
 
             logging.info(
                 "Epoch: {}/{}... ".format(e+1, epochs) +
