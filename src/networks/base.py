@@ -8,7 +8,7 @@ class Network(nn.Module):
         super().__init__()
         
         # Input layer
-        self.fc1 = nn.Linear(6400, 16000)
+        self.fc1 = nn.Linear(12800, 16000)
         # Convolutional layers
         self.conv1 = nn.Conv2d(1, 4, kernel_size=4, stride=4)
         self.conv2 = nn.Conv2d(4, 8, kernel_size=(4,2), stride=(4,2)) 

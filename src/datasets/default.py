@@ -4,7 +4,7 @@ import random
 from types import SimpleNamespace
 from torch.utils.data import Dataset, DataLoader
 from src.utils.data_manager import load_data
-from src import dataset_dir, batch_size, num_workers
+from src import dataset_dir, batch_size, num_workers, training_size
 
 NUM_SAMPLES = 252004
 
@@ -51,7 +51,7 @@ def create_dataloader():
 
     training_loader = DataLoader(training_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     validation_loader = DataLoader(validation_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_loader = DataLoader(test_set, batch_size=1, shuffle=True, num_workers=num_workers)
 
     training = SimpleNamespace(**{'loader': training_loader, 'size': len(training_set)})
     validation = SimpleNamespace(**{'loader': validation_loader, 'size': len(validation_set)})
@@ -62,16 +62,21 @@ def create_dataloader():
 def generate_indices():
     indices = [x for x in range(NUM_SAMPLES)]
 
-    training_size = int(0.8 * NUM_SAMPLES)
-    validation_size = int(0.1 * NUM_SAMPLES)
-    test_size = int(0.1 * NUM_SAMPLES)
+    train_set_size = int(0.8 * NUM_SAMPLES)
+    validation_set_size = int(0.1 * NUM_SAMPLES)
+    test_set_size = int(0.1 * NUM_SAMPLES)
 
     random.seed(10)
     random.shuffle(indices)
 
-    training_indices = indices[:training_size]
-    validation_indices = indices[training_size:training_size+validation_size]
-    test_indices = list(set(indices) - set(training_indices) - set(validation_indices))
+    training_indices = indices[:train_set_size]
+    validation_indices = indices[train_set_size:train_set_size+validation_set_size]
+    test_indices = indices[train_set_size+validation_set_size:]
+
+    # reduce training size
+    if training_size < 0.8:
+        new_train_set_size = int(training_size * NUM_SAMPLES)
+        training_indices = training_indices[:new_train_set_size]
 
     return training_indices, validation_indices, test_indices
 
