@@ -95,7 +95,7 @@ def train():
             )
 
     # Save losses for later analysis
-    losses_path = os.path.join('output', 'losses', network + '_losses.pt')
+    losses_path = os.path.join('output', 'losses', scenario + '_losses.pt')
     save_dict = {
         'training_losses': training_losses,
         'validation_losses': validation_losses,
