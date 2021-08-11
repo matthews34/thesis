@@ -64,6 +64,12 @@ class Network(nn.Module):
                     set([i for i in range(100)])-set([4*i for i in range(25)])
                 )
             ).to(device)
+        elif scenario == 'subcarriers10':
+            indices = torch.tensor([10*i for i in range(10)]).to(device)
+        elif scenario == 'subcarriers5':
+            indices = torch.tensor([20*i for i in range(5)]).to(device)
+        elif scenario == 'subcarriers1':
+            indices = torch.tensor([0]).to(device)
         else:
             logging.error(f'Subcarriers: invalid scenario {scenario}')
             exit(-1)
