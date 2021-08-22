@@ -2,13 +2,29 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import logging
+from src import features
+from src.utils.features import normalize, gen_PDP, rss, tof, power_first_path, delay_spread
 
 class Network(nn.Module):
     def __init__(self):
         super().__init__()
         
         # Input layer
-        self.fc1 = nn.Linear(200, 16000)
+        input_dim = 0
+        for f in features:
+            if f == 'rss':
+                input_dim += 64
+            elif f == 'tof':
+                input_dim += 64
+            elif f == 'pofp':
+                input_dim += 64
+            elif f == 'ds':
+                input_dim += 64
+            else:
+                logging.error(f'Features: unknown feature {f}')
+                exit(-1)
+
+        self.fc1 = nn.Linear(input_dim, 16000)
         # Convolutional layers
         self.conv1 = nn.Conv2d(1, 4, kernel_size=4, stride=4)
         self.conv2 = nn.Conv2d(4, 8, kernel_size=(4,2), stride=(4,2)) 
@@ -44,18 +60,26 @@ class Network(nn.Module):
         return x
 
     def prepare_input(self, x):
-        CFR = x                         # CFR (CSI) - shape = (B, 64, 100)
-        CIR = torch.fft.ifft(x, dim=2)  # CIR - shape = (B, 64, 100)
 
-        # extract RSS
-        RSS = torch.sum(torch.square(torch.abs(CFR)), dim=1) # sum over antennas, shape should be (B, 100)
+        if not features:
+            logging.error(f'Features: no feature provided')
+            exit(-1)
+        pdp = gen_PDP(x)
+        output = torch.zeros((0,0))
+        for f in features:
+            if f == 'rss':
+                output = torch.cat((output, rss(pdp)), dim=-1)
+                size += 64
+            elif f == 'tof':
+                output = torch.cat((output, tof(pdp)), dim=-1)
+            elif f == 'pofp':
+                output = torch.cat((output, power_first_path(pdp, tof(pdp))))
+            elif f == 'ds':
+                output = torch.cat((output, delay_spread(pdp)))
+            else:
+                logging.error(f'Features: unknown feature {f}')
+                exit(-1)
 
-        # extract ToF
-        pdp = torch.square(torch.abs(CIR)) # sum over antennas, shape should be (B, 64, 100)
-        ToF = torch.argmax(pdp, dim=1) # shape should be (B, 100)
+        output = torch.flatten(output, start_dim=1)
 
-        # concatenate features
-        x = torch.stack((RSS, ToF), dim=-1)
-        x = torch.flatten(x, start_dim=1) # shape = (B, 200)
-
-        return x.float()
+        return output.float()
