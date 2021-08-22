@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import logging
-from src import features
+from src import features, device
 from src.utils.features import normalize, gen_PDP, rss, tof, power_first_path, delay_spread
 
 class Network(nn.Module):
@@ -61,15 +61,15 @@ class Network(nn.Module):
 
     def prepare_input(self, x):
 
+        N = x.shape[0] # numver of batches
         if not features:
             logging.error(f'Features: no feature provided')
             exit(-1)
         pdp = gen_PDP(x)
-        output = torch.zeros((0,0))
+        output = torch.zeros((N,0), device=device)
         for f in features:
             if f == 'rss':
                 output = torch.cat((output, rss(pdp)), dim=-1)
-                size += 64
             elif f == 'tof':
                 output = torch.cat((output, tof(pdp)), dim=-1)
             elif f == 'pofp':
