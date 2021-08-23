@@ -3,6 +3,8 @@ import argparse
 import torch
 from pathlib import Path
 
+NUM_SAMPLES = 252004
+
 # Parse mutable arguments (passed through command line)
 parser = argparse.ArgumentParser(description='Train a neural network.')
 parser.add_argument('network', metavar='NETWORK',type=str, help='Name of the network file (without extension)')
@@ -13,7 +15,7 @@ parser.add_argument('--batch', metavar='64', type=int, default=64, help='Size of
 parser.add_argument('--num_workers', metavar='8', type=int, default=8, help='Number of workers for mutithread loading')
 parser.add_argument('--training_size', metavar='0.8', type=float, default=0.8, help='Portion of the dataset corresponding to the training set')
 parser.add_argument('--config_file', metavar='PATH_TO_CONFIG', type=str, default='config.json', help='Path to config file')
-parser.add_argument('--features', metavar='FEATURE...', nargs='+', default=None, help='Features to be used as input (raw CSI will be used if no feature is provided)')
+parser.add_argument('--features', metavar='FEATURE', nargs='+', default=None, help='Features to be used as input (raw CSI will be used if no feature is provided)')
 
 args = parser.parse_args()
 network = args.network
@@ -24,7 +26,12 @@ batch_size = args.batch
 num_workers = args.num_workers
 training_size = args.training_size
 config_file = args.config_file
-features = [f.lower() for f in args.features]
+if args.features:
+    features = [f.lower() for f in args.features]
+    dataset_name = 'features'
+else:
+    features = None
+    dataset_name = 'default'
 
 Path('output/logs').mkdir(parents=True, exist_ok=True)
 Path('output/losses').mkdir(parents=True, exist_ok=True)

@@ -1,7 +1,52 @@
 import torch
-
+import os
+import shutil
+import logging
+from src import features, device, dataset_dir
 
 # IDEA: implement a pytorch dataset
+
+def load_all():
+    positions_file = os.path.join(dataset_dir, 'user_positions.npy')
+    samples_dir = os.path.join(dataset_dir, 'samples')
+
+    indices = [x for x in range(NUM_SAMPLES)]
+    dataset = CSIDataset(positions_file, samples_dir, indices)
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+    return dataloader
+
+def compute_features():
+    """Compute and save features in temporary files."""
+    
+    os.mkdir('data/features')
+    loader = load_all()
+    idx = 0
+    logging.info('Computing features...')
+    for csi, _ in loader:
+        csi= csi.to(device)
+        N = csi.shape[0] # number of batches
+        pdp = gen_PDP(csi)
+        output = torch.zeros((N,0), device=device)
+        for f in features:
+            if f == 'rss':
+                output = torch.cat((output, rss(pdp)), dim=-1)
+            elif f == 'tof':
+                output = torch.cat((output, tof(pdp)), dim=-1)
+            elif f == 'pofp':
+                output = torch.cat((output, power_first_path(pdp, tof(pdp))))
+            elif f == 'ds':
+                output = torch.cat((output, delay_spread(pdp)))
+            else:
+                logging.error(f'Features: unknown feature {f}')
+                exit(-1)
+        torch.save(output.reshape(-1), 'data/features/{:06d}.pt'.format(idx))
+        logging.info('Sample {:06d} computed.'.format(idx))
+        idx += 1
+
+def del_tmp():
+    """Remove saved features."""
+
+    shutil.rmtree('data/features', ignore_errors=True)
 
 def normalize(tensor):
     tensor = (tensor - tensor.mean()) / tensor.std()
