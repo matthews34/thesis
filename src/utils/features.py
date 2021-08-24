@@ -2,7 +2,10 @@ import torch
 import os
 import shutil
 import logging
-from src import features, device, dataset_dir
+import numpy as np
+from torch.utils.data import DataLoader
+from src.datasets.default import CSIDataset 
+from src import NUM_SAMPLES, features, device, dataset_dir
 
 # IDEA: implement a pytorch dataset
 
@@ -29,19 +32,19 @@ def compute_features():
         output = torch.zeros((N,0), device=device)
         for f in features:
             if f == 'rss':
-                output = torch.cat((output, rss(pdp)), dim=-1)
+                output = torch.cat((output, normalize(rss(pdp))), dim=-1)
             elif f == 'tof':
-                output = torch.cat((output, tof(pdp)), dim=-1)
+                output = torch.cat((output, normalize(tof(pdp))), dim=-1)
             elif f == 'pofp':
-                output = torch.cat((output, power_first_path(pdp, tof(pdp))))
+                output = torch.cat((output, normalize(power_first_path(pdp, tof(pdp)))), dim=-1)
             elif f == 'ds':
-                output = torch.cat((output, delay_spread(pdp)))
+                output = torch.cat((output, normalize(delay_spread(pdp))), dim=-1)
             else:
                 logging.error(f'Features: unknown feature {f}')
                 exit(-1)
-        torch.save(output.reshape(-1), 'data/features/{:06d}.pt'.format(idx))
-        logging.info('Sample {:06d} computed.'.format(idx))
+        torch.save(output.reshape(-1).cpu(), 'data/features/{:06d}.pt'.format(idx))
         idx += 1
+    logging.info('Finished computing features.')
 
 def del_tmp():
     """Remove saved features."""
@@ -49,6 +52,7 @@ def del_tmp():
     shutil.rmtree('data/features', ignore_errors=True)
 
 def normalize(tensor):
+    tensor = tensor.float()
     tensor = (tensor - tensor.mean()) / tensor.std()
     return tensor
 
@@ -111,7 +115,7 @@ def power_first_path(pdp, tof):
     N = pdp.shape[0] # batch size
     A = pdp.shape[1] # number of antennas
     T = pdp.shape[2] # size of time dimension
-    pofp = torch.zeros((N,A))
+    pofp = torch.zeros((N,A), device=device)
     for n in range(N):
         for a in range(A):
             pofp[n,a] = pdp[n,a,tof[n,a]]
@@ -130,10 +134,10 @@ def delay_spread(pdp):
     N = pdp.shape[0] # batch size
     A = pdp.shape[1] # number of antennas
     T = pdp.shape[2] # size of time dimension
-    t = torch.arange(T)
+    t = torch.arange(T, device=device)
     tau = torch.sum(torch.mul(t, pdp), dim=-1)/torch.sum(pdp, dim=-1)
     t_reshaped = t.tile((N),).reshape((N,T))
-    tmp = torch.zeros((N,A,T))
+    tmp = torch.zeros((N,A,T), device=device)
     for n in range(N):
         for a in range(A):
             tmp[n,a,:] = torch.pow(t - tau[n,a], 2)

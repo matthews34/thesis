@@ -1,6 +1,11 @@
+import os
+import random
+import numpy as np
+import torch
+from types import SimpleNamespace
 from torch.utils.data import Dataset, DataLoader
 from src.utils.data_manager import load_data
-from src import NUM_SAMPLES, dataset_dir
+from src import NUM_SAMPLES, dataset_dir, batch_size, num_workers, training_size
 
 class FeaturesDataset(Dataset):
     def __init__(self, positions_file, samples_dir, indices):
@@ -28,9 +33,9 @@ def create_dataloader():
     training_indices, validation_indices, test_indices = generate_indices()
 
     # Setup dataset and data loader
-    training_set = FeaturesDataset(dir, training_indices)
-    validation_set = FeaturesDataset(dir, validation_indices)
-    test_set = FeaturesDataset(dir, test_indices)
+    training_set = FeaturesDataset(positions_file, samples_dir, training_indices)
+    validation_set = FeaturesDataset(positions_file, samples_dir, validation_indices)
+    test_set = FeaturesDataset(positions_file, samples_dir, test_indices)
 
     training_loader = DataLoader(training_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     validation_loader = DataLoader(validation_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)

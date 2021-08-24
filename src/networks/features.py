@@ -61,25 +61,6 @@ class Network(nn.Module):
 
     def prepare_input(self, x):
 
-        N = x.shape[0] # numver of batches
-        if not features:
-            logging.error(f'Features: no feature provided')
-            exit(-1)
-        pdp = gen_PDP(x)
-        output = torch.zeros((N,0), device=device)
-        for f in features:
-            if f == 'rss':
-                output = torch.cat((output, rss(pdp)), dim=-1)
-            elif f == 'tof':
-                output = torch.cat((output, tof(pdp)), dim=-1)
-            elif f == 'pofp':
-                output = torch.cat((output, power_first_path(pdp, tof(pdp))))
-            elif f == 'ds':
-                output = torch.cat((output, delay_spread(pdp)))
-            else:
-                logging.error(f'Features: unknown feature {f}')
-                exit(-1)
-
-        output = torch.flatten(output, start_dim=1)
+        output = x
 
         return output.float()

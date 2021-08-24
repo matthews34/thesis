@@ -9,7 +9,13 @@ class Network(nn.Module):
         super().__init__()
         
         # Input layer
-        if scenario == 'subcarriers25':
+        if scenario == 'subcarriers1':
+            input_dim = 128
+        elif scenario == 'subcarriers5':
+            input_dim = 640
+        elif scenario == 'subcarriers10':
+            input_dim = 1280
+        elif scenario == 'subcarriers25':
             input_dim = 3200
         elif scenario == 'subcarriers50':
             input_dim = 6400

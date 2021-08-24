@@ -74,7 +74,7 @@ class Network(nn.Module):
             exit(-1)
         
         # select indices
-        x = torch.index_select(x, dim=1, indices)
+        x = torch.index_select(x, 1, indices)
         x = torch.flatten(x, start_dim=1)
         # split complex values
         x = torch.stack((x.real, x.imag), -1) # vector is now 3200x2
