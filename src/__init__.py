@@ -16,6 +16,7 @@ parser.add_argument('--num_workers', metavar='8', type=int, default=8, help='Num
 parser.add_argument('--training_size', metavar='0.8', type=float, default=0.8, help='Portion of the dataset corresponding to the training set')
 parser.add_argument('--config_file', metavar='PATH_TO_CONFIG', type=str, default='config.json', help='Path to config file')
 parser.add_argument('--features', metavar='FEATURE', nargs='+', default=None, help='Features to be used as input (raw CSI will be used if no feature is provided)')
+parser.add_argument('--test', action='store_true', default=False, help='If true run test on trained model')
 
 args = parser.parse_args()
 network = args.network
@@ -26,6 +27,7 @@ batch_size = args.batch
 num_workers = args.num_workers
 training_size = args.training_size
 config_file = args.config_file
+test_flag = args.test
 if args.features:
     features = [f.lower() for f in args.features]
     dataset_name = 'features'

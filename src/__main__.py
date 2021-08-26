@@ -2,18 +2,20 @@ import logging
 import sys
 from .utils.logger import Formatter
 from .training import train
-from . import config, scenario, features
+from .test import test
+from . import config, scenario, features, test_flag
 from .utils.features import compute_features, del_tmp
 
 def main():
+    run = test if test_flag else train
     if features:
         logging.info(f'Parameters: {config}')
         compute_features()
-        train()
+        run()
         del_tmp()
     else:
         logging.info(f'Parameters: {config}')
-        train()
+        run()
 
 if __name__ == '__main__':
     consoleHandler = logging.StreamHandler(sys.stdout)

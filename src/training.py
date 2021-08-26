@@ -8,9 +8,6 @@ from importlib import import_module
 from torch import optim
 from src import dataset_dir, batch_size, num_workers, network, learning_rate, epochs, device, scenario, dataset_name
 
-
-from src.datasets.default import create_dataloader
-
 def train():
     dataset = import_module('src.datasets.{}'.format(dataset_name))
     training, validation, _ = dataset.create_dataloader()
@@ -19,7 +16,6 @@ def train():
     scenario_name = os.path.join('output', 'models', scenario + '.pt')
     model = import_module('.' + network, package='src.networks').Network()
     epoch = 0
-    checkpoint_path = os.path.join('output', 'models', 'checkpoints', network + '_checkpoint.pt')
 
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
