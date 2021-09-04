@@ -30,7 +30,10 @@ config_file = args.config_file
 test_flag = args.test
 if args.features:
     features = [f.lower() for f in args.features]
-    dataset_name = 'features'
+    if 'csi' in features:
+        dataset_name = 'features+raw'
+    else:
+        dataset_name = 'features'
 else:
     features = None
     dataset_name = 'default'

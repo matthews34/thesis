@@ -38,13 +38,14 @@ class FeaturesRawDataset(Dataset):
 
 def create_dataloader():
     positions_file = os.path.join(dataset_dir, 'user_positions.npy')
-    samples_dir = os.path.join('data', 'features')
+    csi_dir = os.path.join(dataset_dir, 'samples')
+    features_dir = os.path.join('data', 'features')
     training_indices, validation_indices, test_indices = generate_indices()
 
     # Setup dataset and data loader
-    training_set = FeaturesDataset(positions_file, samples_dir, training_indices)
-    validation_set = FeaturesDataset(positions_file, samples_dir, validation_indices)
-    test_set = FeaturesDataset(positions_file, samples_dir, test_indices)
+    training_set = FeaturesRawDataset(positions_file, csi_dir, features_dir, training_indices)
+    validation_set = FeaturesRawDataset(positions_file, csi_dir, features_dir, validation_indices)
+    test_set = FeaturesRawDataset(positions_file, csi_dir, features_dir, test_indices)
 
     training_loader = DataLoader(training_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     validation_loader = DataLoader(validation_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
