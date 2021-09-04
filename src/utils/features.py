@@ -39,6 +39,8 @@ def compute_features():
                 output = torch.cat((output, normalize(power_first_path(pdp, tof(pdp)))), dim=-1)
             elif f == 'ds':
                 output = torch.cat((output, normalize(delay_spread(pdp))), dim=-1)
+            elif f == 'csi':
+                continue
             else:
                 logging.error(f'Features: unknown feature {f}')
                 exit(-1)

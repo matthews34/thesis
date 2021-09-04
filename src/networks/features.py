@@ -20,6 +20,8 @@ class Network(nn.Module):
                 input_dim += 64
             elif f == 'ds':
                 input_dim += 64
+            elif f == 'csi':
+                input_dim += 6400
             else:
                 logging.error(f'Features: unknown feature {f}')
                 exit(-1)
