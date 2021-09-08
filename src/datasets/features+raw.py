@@ -20,10 +20,10 @@ class FeaturesRawDataset(Dataset):
     def __getitem__(self, idx):
         index = self.indices[idx]
 
-        csi_filepath = os.path.join(self.csi_dir, '{:06d}.pt'.format(index))
-        csi = torch.load(csi_filepath)
+        csi_filepath = os.path.join(self.csi_dir, 'channel_measurement_{:06d}.npy'.format(index))
+        csi = load_data(csi_filepath)
 
-        features_filepath = os.path.join(self.featuress_dir, '{:06d}.pt'.format(index))
+        features_filepath = os.path.join(self.features_dir, '{:06d}.pt'.format(index))
         features = torch.load(features_filepath)
 
         # Remove z coordinate from the positions
@@ -32,6 +32,7 @@ class FeaturesRawDataset(Dataset):
         shape = [1]
         shape.extend(csi.shape)
         csi = process_csi(torch.from_numpy(csi).reshape(shape))
+        csi = csi.reshape((12800))
         sample = torch.cat((csi, features), dim=-1)
                     
         return sample, label
