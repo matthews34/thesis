@@ -39,6 +39,8 @@ def compute_features():
                 output = torch.cat((output, normalize(power_first_path(pdp, tof(pdp)))), dim=-1)
             elif f == 'ds':
                 output = torch.cat((output, normalize(delay_spread(pdp))), dim=-1)
+            elif f == 'aoa':
+                output = torch.cat((output, normalize(aoa(csi))), dim=-1)
             elif f == 'csi':
                 continue
             else:
@@ -146,3 +148,19 @@ def delay_spread(pdp):
     trms = torch.sum(torch.mul(tmp, pdp), dim=2)/torch.sum(pdp, dim=-1)
     trms = torch.sqrt(trms)
     return trms
+
+def aoa(csi: torch.Tensor):
+    N, A, S = csi.shape
+
+    G = torch.zeros((N, 8, S, 180))
+    for array in range(8): # 8 antenna arrays
+        first_antenna = array * 8
+        x = csi[first_antenna:first_antenna+8]
+        for batch in range(N):
+            for i in range(180):
+                v = np.exp(-(1j)*np.pi*np.cos(np.deg2rad(i))*np.arange(8))
+                G[batch,array,:,:] = torch.abs(torch.matmul(v,x))
+                # G[180-i-1] = np.abs(np.matmul(v,x))
+    angles = G.argmax()
+    print(angles.shape)
+    return torch.flatten(angles, start_dim=1)

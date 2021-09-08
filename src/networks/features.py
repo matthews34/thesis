@@ -20,6 +20,8 @@ class Network(nn.Module):
                 input_dim += 64
             elif f == 'ds':
                 input_dim += 64
+            elif f == 'aoa':
+                input_dim += 800
             elif f == 'csi':
                 input_dim += 12800
             else:
