@@ -28,7 +28,7 @@ def compute_features():
     for csi, _ in loader:
         csi= csi.to(device)
         N = csi.shape[0] # number of batches
-        pdp = gen_PDP(csi)
+        pdp = gen_PDP(csi, 1024*64)
         output = torch.zeros((N,0), device=device)
         for f in features:
             if f == 'rss':
@@ -46,8 +46,10 @@ def compute_features():
             else:
                 logging.error(f'Features: unknown feature {f}')
                 exit(-1)
-        torch.save(output.reshape(-1).cpu(), 'data/features/{:06d}.pt'.format(idx))
-        idx += 1
+        for n in range(csi.shape[0]):
+            torch.save(output[n].cpu(), 'data/features/{:06d}.pt'.format(idx))
+            idx +=1
+            #logging.debug(f'Finished {idx}')
     logging.info('Finished computing features.')
 
 def del_tmp():
@@ -151,16 +153,18 @@ def delay_spread(pdp):
 
 def aoa(csi: torch.Tensor):
     N, A, S = csi.shape
+    #csi = csi.reshape((A,S))
 
-    G = torch.zeros((N, 8, S, 180))
+    G = torch.zeros((N, 8, 180, S), device=device)
     for array in range(8): # 8 antenna arrays
         first_antenna = array * 8
-        x = csi[first_antenna:first_antenna+8]
-        for batch in range(N):
+#        x = csi[first_antenna:first_antenna+8]
+        for n in range(N):
+            x = csi[n,first_antenna:first_antenna+8,:]
             for i in range(180):
                 v = np.exp(-(1j)*np.pi*np.cos(np.deg2rad(i))*np.arange(8))
-                G[batch,array,:,:] = torch.abs(torch.matmul(v,x))
+                v = torch.tensor(v, device=device)
+                G[n, array,:,:] = torch.abs(torch.matmul(v,x))
                 # G[180-i-1] = np.abs(np.matmul(v,x))
-    angles = G.argmax()
-    print(angles.shape)
+    angles = G.argmax(dim=2)
     return torch.flatten(angles, start_dim=1)
